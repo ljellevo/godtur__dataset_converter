@@ -1,0 +1,7 @@
+Flask==0.11
+pyyaml
+requests
+ijson==2.3
+cffi
+Cython
+simplejson
