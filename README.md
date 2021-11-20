@@ -11,3 +11,18 @@ First of all, this program converts the GML file into a more managable JSON file
 Secondly, the norwegian map coordinate standard is EUREF89. This is not widely supported by map libraries. A conversion is therefore made from EUREF89 to WGS84. This is done using existing code from the https://github.com/sesam-community/utm-to-latlong repository - tailored to this solution.
 
 The result is a easy to manage JSON file with compatible coordinates.
+
+
+To run:  
+Change GML file to correct file.  
+Ensure the tags are compatible with the relevant GML file.  
+Specify JSON file for which the result should be stored..  
+```
+virtualenv --python=python3 venv
+. venv/bin/activate
+pip install -r requirements.txt
+python convert.py
+```
+
+
+This code is very messy, but only inteded to be used for a specific purpose on a specific file. It does the trick.
