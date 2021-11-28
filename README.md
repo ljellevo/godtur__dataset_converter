@@ -25,5 +25,3 @@ pip install -r requirements.txt
 python convert.py
 ```
 
-
-This code is very messy, but only inteded to be used for a specific purpose on a specific file. It does the trick.
