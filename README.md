@@ -3,10 +3,11 @@ This program converts the dataset provided by Kartverket into a more managable d
  
 First of all, this program converts the GML file into a more managable JSON file with only the relevant fields for the app:
 - Location
+- Alternative names
 - Latitude
 - Longitude
 - Unique identifier
-- TODO: Priority
+- Priority
 
 Secondly, the norwegian map coordinate standard is EUREF89. This is not widely supported by map libraries. A conversion is therefore made from EUREF89 to WGS84.
 
