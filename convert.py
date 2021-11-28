@@ -1,38 +1,20 @@
 # -*- coding: utf-8 -*-
-
+# Old convertion code
 import codecs
 import xml.etree.ElementTree as ET
-# import json
-from transform_service import transform_entity
-from utils import parse_json_stream, entities_to_json
 import simplejson as json
+import pyproj
 
 
-def generate(entities):
-  yield "["
-  for index, entity in enumerate(entities):
-    if index > 0:
-      yield ","
 
-    # Transit decode
-      
-          
-    entity = transform_entity(entity)
-    yield entities_to_json(entity)
-  yield "]"
 
-    # get entities from request
-  # req_entities = parse_json_stream(entities)
-
-    # Generate the response
-
-# f = open("posisjoner.json", "w")
 f = codecs.open("posisjoner.json", "w", encoding='utf8')
 running_id = 0
 print("Parsing file")
 context = ET.iterparse("stedsnavn.gml", events=("start", "end"))
 context = iter(context)
 lokasjon = {}
+priority = {}
 posisjon = {}
 lokasjoner = []
 print("File parsed")
@@ -42,22 +24,22 @@ for event, elem in context:
   value = elem.text
   if event == 'start' :
     if value and tag is not None:
-
       if tag == "{http://skjema.geonorge.no/SOSI/produktspesifikasjon/StedsnavnForVanligBruk/20181115}lokalId":
         running_id += 1
-        
       if tag == "{http://www.opengis.net/gml/3.2}pos" :
         posisjon = {"id": running_id, "posisjon": value}
       elif tag == '{http://skjema.geonorge.no/SOSI/produktspesifikasjon/StedsnavnForVanligBruk/20181115}komplettskrivemåte':
         lokasjon = {"id": running_id, "lokasjon": value}
-    
-    if "id" in lokasjon and "id" in posisjon: 
-      if lokasjon["id"] == posisjon["id"]:
-        json_pos = generate([{ "_id": lokasjon["id"], "northing": posisjon["posisjon"].split(" ")[0], "easting": posisjon["posisjon"].split(" ")[1], "zone": "33"}])
-        # curl -s -XPOST 'http://localhost:5001/transform' -H "Content-type: application/json" -d '[{ "_id": "jane", "northing": "12344", "easting": "6543", "zone": "32"}]' | jq -S .
-        # print(list(json_pos)[1][lat])
-        res = json.dumps(json_pos, iterable_as_array=True)
-        lokasjoner.append({"id": running_id, "lokasjon": lokasjon["lokasjon"], "latitude": res.split(",")[5].split(": ")[1], "longitude": res.split(",")[6].split(": ")[1].replace('}"', "")})
+      elif tag == '{http://skjema.geonorge.no/SOSI/produktspesifikasjon/StedsnavnForVanligBruk/20181115}sortering':
+        priority = {"id": running_id, "priority": value}
+        
+    if "id" in lokasjon and "id" in posisjon and "id" in priority: 
+      if lokasjon["id"] == posisjon["id"] == priority["id"]:
+        p = pyproj.Proj(proj='utm', zone=33, ellps='WGS84')
+        northing = float(posisjon["posisjon"].split(" ")[1])
+        easting = float(posisjon["posisjon"].split(" ")[0])
+        y, x = p(easting,northing,inverse=True)
+        lokasjoner.append({"id": running_id, "location": lokasjon["lokasjon"], "latitude": x, "longitude": y, "priority": priority["priority"]})
         lokasjon = {}
         posisjon = {} 
 

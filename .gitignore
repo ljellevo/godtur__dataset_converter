@@ -1,2 +1,6 @@
 stedsnavn.gml
 posisjoner.json
+stedsnavn_enkel.gml
+posisjoner_enkel.json
+conv.py
+posisjoner_type.json
