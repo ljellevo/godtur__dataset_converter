@@ -3,7 +3,8 @@ import codecs
 import simplejson as json
 import pyproj
 
-from utils import findPosition, findAlternativeNames
+from utils import findPosition, findAlternativeNames, convertImportance
+from api import getToken, uploadData
 
 
 
@@ -30,18 +31,20 @@ for featureMember in tree.findall('{http://www.opengis.net/gml/3.2}featureMember
   alternative_names = findAlternativeNames(featureMember, name, gml, app)
   
   
-  priority = featureMember.find('.//' + app + 'sortering')
-  priority = priority.text if priority is not None else 'No priority record'
+  importance = featureMember.find('.//' + app + 'sortering')
+  importance = convertImportance(importance.text) if importance is not None else -1
   
   # Says something about what kind of location it is
   locationType = featureMember.find('.//' + app + 'navneobjekttype')
   locationType = locationType.text if locationType is not None else 'No locationType record'
   
-  locations.append({"name": name, "alternative_names": alternative_names, "coordinates": coordinates, "priority": priority, "location_type": locationType})
+  locations.append({"name": name, "alternative_names": alternative_names, "coordinates": coordinates, "importance": importance, "location_type": locationType})
   # print("name=" + name + ", pos=" + pos + ", priority=" + priority)
 
 print("Finished iterating, dumping to file")
-f.write(json.dumps(locations, ensure_ascii=False))
+token = getToken()
+uploadData(token, json.dumps({"locations": locations}, ensure_ascii=False))
+f.write(json.dumps({"locations": locations}, ensure_ascii=False))
 f.close()
 print("Done")
   #Need to append to array, make a json object and write to file

@@ -41,15 +41,22 @@ def findAlternativeNames(featureMember, name, gml, app):
   alt_names = []
 
   if featureMember.findall('.//' + app + 'annenSkrivemåte') is not None:
-    # Ikke riktig, må lage en "query" som må finne kun de komplette skrivemetodene som har parent som er annenSkrivemnåte
     alternative_names = featureMember.findall('.//' + app + 'komplettskrivemåte')
-    # './Sted/stedsnavn/annenSkrivemåte/Skrivemåte/' + app + 'komplettskrivemåte'
-    print(alternative_names)
     for alternative_name in alternative_names:
       if alternative_name.text != name:
         alt_names.append({"name": alternative_name.text})
-        print(alternative_name.text)
     
 
   return alt_names
+  
+
+# A B C D E F G H I J K M N O
+# 14 13 12 11 10 9 8 7 6 5 4 3 2 1
+def convertImportance(featureMemeber): 
+  importance_sanitized = featureMemeber.replace("viktighet", "")
+  importance = ord(importance_sanitized) - 64
+  return importance
+  
+  
+  
   
