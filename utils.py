@@ -35,7 +35,6 @@ def findPosition(featureMember, gml, app):
       coordinates.append({"latitude": x, "longitude": y})
     return coordinates
 
-
 def findAlternativeNames(featureMember, name, gml, app):
   # Stedsnavn
   alt_names = []

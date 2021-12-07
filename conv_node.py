@@ -9,6 +9,7 @@ from api import getToken, uploadData
 
 
 f = codecs.open("posisjoner_enkel.json", "w", encoding='utf8')
+location_type_object = json.load(open('posisjoner_type.json'))
 print("Starting parse of GML file")
 tree = etree.parse('stedsnavn_enkel.gml')
 print("Finished parsing, getting root")
@@ -37,8 +38,8 @@ for featureMember in tree.findall('{http://www.opengis.net/gml/3.2}featureMember
   # Says something about what kind of location it is
   locationType = featureMember.find('.//' + app + 'navneobjekttype')
   locationType = locationType.text if locationType is not None else 'No locationType record'
-  
-  locations.append({"name": name, "alternative_names": alternative_names, "coordinates": coordinates, "importance": importance, "location_type": locationType})
+  if(location_type_object[locationType] is True):
+    locations.append({"name": name, "alternative_names": alternative_names, "coordinates": coordinates, "importance": importance, "location_type": locationType})
   # print("name=" + name + ", pos=" + pos + ", priority=" + priority)
 
 print("Finished iterating, dumping to file")
