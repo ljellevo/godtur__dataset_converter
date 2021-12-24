@@ -1,3 +1,4 @@
+
 from lxml import etree
 import codecs
 import simplejson as json
@@ -8,10 +9,10 @@ from api import getToken, uploadData
 
 
 
-f = codecs.open("posisjoner_enkel.json", "w", encoding='utf8')
+f = codecs.open("posisjoner.json", "w", encoding='utf8')
 location_type_object = json.load(open('posisjoner_type.json'))
 print("Starting parse of GML file")
-tree = etree.parse('stedsnavn_enkel.gml')
+tree = etree.parse('stedsnavn.gml')
 print("Finished parsing, getting root")
 root = tree.getroot()
 print("Got root")
