@@ -17,7 +17,7 @@ print("Finished parsing, getting root")
 root = tree.getroot()
 print("Got root")
 locations = []
-
+name = ""
 app = "{http://skjema.geonorge.no/SOSI/produktspesifikasjon/StedsnavnForVanligBruk/20181115}"
 gml = "{http://www.opengis.net/gml/3.2}"
 
@@ -27,8 +27,17 @@ for featureMember in tree.findall('{http://www.opengis.net/gml/3.2}featureMember
   coordinates = findPosition(featureMember, gml, app)
 
   # finds name, need to account for multiple names
-  name = featureMember.find('.//' + app + 'komplettskrivemåte')
-  name = name.text if name is not None else 'No name record'
+  # name = featureMember.find('.//' + app + 'komplettskrivemåte')
+  # name = name.text if name is not None else 'No name record'
+  
+  språkprioritering = featureMember.find('.//' + app + 'språkprioritering').text.split("-")[0]
+  for stedsnavn in featureMember.findall('.//' + app + 'Stedsnavn'):
+    node = stedsnavn.find(app + 'språk')
+    if node.text == språkprioritering:
+      name = stedsnavn.find('.//' + app + 'komplettskrivemåte').text
+       
+      
+    
   
   alternative_names = findAlternativeNames(featureMember, name, gml, app)
   
