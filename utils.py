@@ -43,7 +43,7 @@ def findAlternativeNames(featureMember, name, gml, app):
     alternative_names = featureMember.findall('.//' + app + 'komplettskrivemåte')
     for alternative_name in alternative_names:
       if alternative_name.text != name:
-        alt_names.append({"name": alternative_name.text})
+        alt_names.append(alternative_name.text)
     
 
   return alt_names
