@@ -1,0 +1,30 @@
+{
+  "locations": [
+    {
+      "name": "Oslo",
+      "alternative_names": [
+      ],
+      "coordinates": [
+        {
+          "latitude": 59.91,
+          "longitude": 10.74
+        }
+      ],
+      "importance": 11,
+      "location_type": "by"
+    },
+    {
+      "name": "Gyrihaugen",
+      "alternative_names": [
+      ],
+      "coordinates": [
+        {
+          "latitude": 60.09,
+          "longitude": 10.38
+        }
+      ],
+      "importance": 11,
+      "location_type": "by"
+    }
+  ]
+}

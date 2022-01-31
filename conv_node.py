@@ -1,28 +1,50 @@
+# coding=utf-8
 
 from lxml import etree
 import codecs
 import simplejson as json
 import pyproj
+import sys, getopt
 
 from utils import findPosition, findAlternativeNames, convertImportance
 from api import getToken, uploadData
 
 
+def main(argv):
+  extended = False
+  try:
+    opts, args = getopt.getopt(argv,"he", ["extended"])
+  except getopt.GetoptError:
+    print('conv_node.py -i <inputfile> ')
+    sys.exit(2)
+    
+  for opt, arg in opts:
+    if opt == '-h':
+      print('conv_node.py -e (for full dataset)')
+      sys.exit()
+    elif opt in ("-e", "--extended"):
+      extended = True
+      
+  if(extended is True):
+    f = codecs.open("posisjoner.json", "w", encoding='utf8')
+    print("Starting loading GML file")
+    tree = etree.parse('stedsnavn.gml')
+  else:
+    f = codecs.open("posisjoner_enkel.json", "w", encoding='utf8')
+    print("Starting loading small GML file")
+    tree = etree.parse('stedsnavn_enkel.gml')
+  
+  print("Finished parsing, getting root")
+  location_type_object = json.load(open('posisjoner_type.json'))
+  root = tree.getroot()
+  print("Got root")
+  locations = []
+  name = ""
+  app = "{http://skjema.geonorge.no/SOSI/produktspesifikasjon/StedsnavnForVanligBruk/20181115}"
+  gml = "{http://www.opengis.net/gml/3.2}"
 
-f = codecs.open("posisjoner.json", "w", encoding='utf8')
-location_type_object = json.load(open('posisjoner_type.json'))
-print("Starting parse of GML file")
-tree = etree.parse('stedsnavn.gml')
-print("Finished parsing, getting root")
-root = tree.getroot()
-print("Got root")
-locations = []
-name = ""
-app = "{http://skjema.geonorge.no/SOSI/produktspesifikasjon/StedsnavnForVanligBruk/20181115}"
-gml = "{http://www.opengis.net/gml/3.2}"
-
-print("Started iterating GML tree")
-for featureMember in tree.findall('{http://www.opengis.net/gml/3.2}featureMember'):
+  print("Started iterating GML tree")
+  for featureMember in tree.findall('{http://www.opengis.net/gml/3.2}featureMember'):
     locationType = featureMember.find('.//' + app + 'navneobjekttype')
     locationType = locationType.text if locationType is not None else 'Ukjent'
     if(location_type_object[locationType] is True):
@@ -64,11 +86,17 @@ for featureMember in tree.findall('{http://www.opengis.net/gml/3.2}featureMember
       })
   # print("name=" + name + ", pos=" + pos + ", priority=" + priority)
 
-print("Finished iterating, dumping to file")
-token = getToken()
-uploadData(token, json.dumps({"locations": locations}, ensure_ascii=False))
-f.write(json.dumps({"locations": locations}, ensure_ascii=False))
-f.close()
-print("Done")
-  #Need to append to array, make a json object and write to file
-  #coordinates["latitude"], "longitude": coordinates["longitude"]
+  print("Finished iterating, dumping to file")
+  token = getToken()
+  uploadData(token, json.dumps({"locations": locations}, ensure_ascii=False))
+  f.write(json.dumps({"locations": locations}, ensure_ascii=False))
+  f.close()
+  print("Done")
+    #Need to append to array, make a json object and write to file
+    #coordinates["latitude"], "longitude": coordinates["longitude"]
+    
+    
+  
+  
+if __name__ == "__main__":
+  main(sys.argv[1:])
