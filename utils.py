@@ -8,12 +8,15 @@ def findPosition(featureMember, gml, app):
     positions = featureMember.findall('.//' + gml + 'pos')
     coordinates = []
     for point in positions:
+      pair = []
       p = pyproj.Proj(proj='utm', zone=33, ellps='WGS84')
       northing = float(point.text.split(" ")[1])
       easting = float(point.text.split(" ")[0])
       y, x = p(easting,northing,inverse=True)
-      coordinates.append({"latitude": x, "longitude": y})
-    return coordinates
+      pair.append(y)
+      pair.append(x)
+      coordinates.append(pair)
+    return {"type": "MultiPoint", "coordinates": coordinates}
 
   pos = featureMember.find('.//' + gml + 'pos')
   if pos is not None:
@@ -21,7 +24,7 @@ def findPosition(featureMember, gml, app):
     northing = float(pos.text.split(" ")[1])
     easting = float(pos.text.split(" ")[0])
     y, x = p(easting,northing,inverse=True)
-    return [{"latitude": x, "longitude": y}]
+    return {"type": "MultiPoint", "coordinates": [[y, x]]}
   
   pos = featureMember.find('.//' + gml + 'posList')
   if pos is not None:
@@ -32,8 +35,8 @@ def findPosition(featureMember, gml, app):
       northing = float(pos[i + 1])
       easting = float(pos[i])
       y, x = p(easting,northing,inverse=True)
-      coordinates.append({"latitude": x, "longitude": y})
-    return coordinates
+      coordinates.append([y, x])
+    return {"type": "MultiPoint", "coordinates": coordinates}
 
 def findAlternativeNames(featureMember, name, gml, app):
   # Stedsnavn

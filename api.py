@@ -15,5 +15,8 @@ def uploadData(token, data):
   if r.status_code == 400:
     print(r.json())
 
-
-
+def deleteData(token):
+  access_token = {"access_token": token}
+  r = requests.delete('http://192.168.1.146:8080/api/locations', params=access_token)
+  if r.status_code == 400:
+    print(r.json())

@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import re
 from lxml import etree
 import codecs
 import simplejson as json
@@ -7,43 +8,18 @@ import pyproj
 import sys, getopt
 
 from utils import findPosition, findAlternativeNames, convertImportance
-from api import getToken, uploadData
+from api import deleteData, getToken, uploadData
 
 
-def main(argv):
-  extended = False
-  try:
-    opts, args = getopt.getopt(argv,"he", ["extended"])
-  except getopt.GetoptError:
-    print('conv_node.py -i <inputfile> ')
-    sys.exit(2)
-    
-  for opt, arg in opts:
-    if opt == '-h':
-      print('conv_node.py -e (for full dataset)')
-      sys.exit()
-    elif opt in ("-e", "--extended"):
-      extended = True
-      
-  if(extended is True):
-    f = codecs.open("posisjoner.json", "w", encoding='utf8')
-    print("Starting loading GML file")
-    tree = etree.parse('stedsnavn.gml')
-  else:
-    f = codecs.open("posisjoner_enkel.json", "w", encoding='utf8')
-    print("Starting loading small GML file")
-    tree = etree.parse('stedsnavn_enkel.gml')
-  
-  print("Finished parsing, getting root")
+def parseGML(tree): 
   location_type_object = json.load(open('posisjoner_type.json'))
+  print("Finished parsing, getting root")
   root = tree.getroot()
   print("Got root")
-  locations = []
   name = ""
   app = "{http://skjema.geonorge.no/SOSI/produktspesifikasjon/StedsnavnForVanligBruk/20181115}"
   gml = "{http://www.opengis.net/gml/3.2}"
-
-  print("Started iterating GML tree")
+  locations = []
   for featureMember in tree.findall('{http://www.opengis.net/gml/3.2}featureMember'):
     locationType = featureMember.find('.//' + app + 'navneobjekttype')
     locationType = locationType.text if locationType is not None else 'Ukjent'
@@ -78,24 +54,109 @@ def main(argv):
       locations.append({
         "name": name, 
         "alternative_names": alternative_names, 
-        "coordinates": coordinates, 
+        "geo_json": coordinates, 
         "importance": importance if locationType != "by" else 11, 
         "location_type": locationType,
         "municipality": municipality,
         "county": county
       })
+  return locations
+
+
+def main(argv):
+  extended = False
+  locations = []
+  from_cache = False
+  try:
+    opts, args = getopt.getopt(argv,"hec", ["extended, cache"])
+  except getopt.GetoptError:
+    print('conv_node.py (-e for entire dataset)')
+    sys.exit(2)
+    
+  for opt, arg in opts:
+    if opt == '-h':
+      print('conv_node.py -e (for full dataset)')
+      sys.exit()
+    elif opt in ("-e", "--extended"):
+      extended = True
+    
+    if opt in ("-c", "--cache"):
+      from_cache = True
+      
+  if(extended is True):
+    
+    if(from_cache is True):
+      f = codecs.open("posisjoner.json", "r", encoding='utf8')
+      locations = f.read()
+      print("Uploading parsed file")
+      print("Getting token from API")
+      token = getToken()
+      print("Deleting old data from DB")
+      deleteData(token)
+      print("Uploading data")
+      uploadData(token, json.dumps({"locations": locations}, ensure_ascii=False))
+      f.close()
+      
+    else:
+      f = codecs.open("posisjoner.json", "w", encoding='utf8')
+      print("Starting loading GML file")
+      tree = etree.parse('stedsnavn.gml')
+      print("Started iterating GML tree")
+      locations = parseGML(tree)
+      print("Finished parsing file")
+      print("Getting token from API")
+      token = getToken()
+      print("Deleting old data from DB")
+      deleteData(token)
+      print("Uploading data")
+      uploadData(token, json.dumps({"locations": locations}, ensure_ascii=False))
+      print("Finished iterating, dumping to file")
+      f.write(json.dumps({"locations": locations}, ensure_ascii=False))
+      f.close()
+  else:
+    
+    if(from_cache is True):
+      f = codecs.open("posisjoner_enkel.json", "r", encoding='utf8')
+      locations = f.read()
+      print("Uploading parsed file")
+      print("Getting token from API")
+      token = getToken()
+      print("Deleting old data from DB")
+      deleteData(token)
+      print("Uploading data")
+      uploadData(token, json.dumps({"locations": json.load(f)}, ensure_ascii=False))
+      f.close()
+    else:
+      f = codecs.open("posisjoner_enkel.json", "w", encoding='utf8')
+      print("Starting loading small GML file")
+      tree = etree.parse('stedsnavn_enkel.gml')
+      print("Started iterating GML tree")
+      locations = parseGML(tree)
+      print("Finished parsing file")
+      print("Getting token from API")
+      token = getToken()
+      print("Deleting old data from DB")
+      deleteData(token)
+      print(  "Uploading data")
+      uploadData(token, json.dumps({"locations": locations}, ensure_ascii=False))
+      print("Finished iterating, dumping to file")
+      f.write(json.dumps({"locations": locations}, ensure_ascii=False))
+      f.close()
+  
+
+  
+
+  
+  
+  
   # print("name=" + name + ", pos=" + pos + ", priority=" + priority)
 
-  print("Finished iterating, dumping to file")
-  token = getToken()
-  uploadData(token, json.dumps({"locations": locations}, ensure_ascii=False))
-  f.write(json.dumps({"locations": locations}, ensure_ascii=False))
-  f.close()
+
+
   print("Done")
     #Need to append to array, make a json object and write to file
     #coordinates["latitude"], "longitude": coordinates["longitude"]
-    
-    
+  return
   
   
 if __name__ == "__main__":
