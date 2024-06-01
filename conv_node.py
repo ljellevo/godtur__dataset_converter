@@ -24,6 +24,7 @@ def parseGML(tree):
     locationType = featureMember.find('.//' + app + 'navneobjekttype')
     locationType = locationType.text if locationType is not None else 'Ukjent'
     if(location_type_object[locationType] is True):
+      
       # Find position, need to account for "multipoint" and poslist
       coordinates = findPosition(featureMember, gml, app)
 
